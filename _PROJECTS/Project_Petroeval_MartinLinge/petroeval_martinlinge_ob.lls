@@ -1,0 +1,874 @@
+PROGRAM: PETROEVAL_MARTINLINGE_OB  
+
+/*start_doc
+/*----------------------------------------------------------------------------------------------------
+/*Developed By:                  Russell McDowell, LET-HNO
+/*Modified By:                   Robert Jorro and Per Ulvedal, LET HNO
+/*                               Tore Stene, LET HNO and Vegard T. Kristiansen, LET NA BSW, 2015
+/*                               Kristian Kjerkreit and Vegard T. Kristiansen, Johan Castberg Petec, 2021         
+/*Original Version Date:         July 2004
+/*Last Updated:                  February 2021
+/*----------------------------------------------------------------------------------------------------
+/*Features:
+/*----------------------------------------------------------------------------------------------------
+/*Temperature:      Formation and well temperatures from geothermal gradients
+/*Porosity:         Total or effective from density or sonic
+/*Saturation:       Archie or Indonesia models available
+/*Shale Volume:     Gamma, Neutron or Minimum options
+/*Matrix Density:   Calculated based on SST and VSH matrix density
+/*Fluid Properties: Density, Neutron, Sonic. Resistivity for Oil, Water or Gas. OBM or WBM. Corrected for salinity, pressure, temperature
+/*Permeability:     Correlations based on Porosity 
+/*Net sand, -reservoir and pay:          
+/*                  Permeability, Porosity, VSH and SWT cutoffs
+/*Badhole:          Caliper and Delta rho cutoffs or external curve
+/*Coal and carb:    Density and Neutron cutoffs or external curve
+/*CPI quality flag: Classification based on available logs and borehole conditions
+/*    0: Poor quality. CPI logs of poor quality, or not available
+/*    1: Good quality. CPI logs of Good quality
+/*    2: Questionable. Bad hole conditions or sonic used for porosity calculations
+/*Fluid flag:       Water=1, Oil=2, Gas=3 
+/*
+/*end_doc
+
+INPUT
+                                        /*
+                                        /* PARAMETERS----------------------
+                                        /*
+       SET_IN                 ALPHA*16  /* Standard input set
+       SET_OUT                ALPHA*16  /* Standard output set
+       WATDEP                 METERS    /* Water depth, mTVDMSL
+       SFT                    DEGC      /* Sea floor temperature
+       MUD_FLAG               ALPHA*8   /* Mud flag - Oil or water based mud
+       RHOOIL                 G/CM3     /* Density of reservoir oil at reservoir conditions
+       RHOGAS                 G/CM3     /* Density of reservoir gas at reservoir conditions
+       NACLW                  PPM       /* Formation water salinity (NaCl equivalent ppm), source D-1 H
+       RHOOBM                 G/CM3     /* Density of OBM base oil at reservoir conditions
+       NACLMF                 PPM       /* Mud filtrate salinity (NaCl equivalent ppm) - if WBM
+                                        /*
+                                        /* CONSTANTS ----------------------
+                                        /*
+       GRAD_A                 DEGC      /* Seabed-1200 m TVD MSL
+       GRAD_B                 DEGC      /* 1200-1800 m TVD MSDL
+       GRAD_C                 DEGC      /* 1800 m TVD MSL-TD
+                                        /*
+                                        /* INTERVALS ----------------------
+                                        /*
+       EDIT_FIELDINPUT        ALPHA*8   /* Edit field spesific inputs?
+       XXXXXXXXXXXXXXXXX      _         /* BASIC WELL SPESIFIC INPUTS:
+       GOC                    METERS    /* Depth of gas oil contact in zone, mTVDMSL (if no gas = 0)
+       OWC                    METERS    /* Depth of oil water contact in zone, mTVDMSL
+       PRES                   BAR       /* Reservoir pressure at middle of zone
+       NEUTRON_LOG            ALPHA*8   /* Source of neutron log
+       TOPRESTVD              METERS    /* Depth of top reservoir, mTVDMSL
+       BHT                    DEGC      /* Bottomhole temperature in flushed zone (RXO)
+       BHTTVD                 METERS    /* Depth of bottomhole temperature measurement (mTVDMSL)
+       XXXXXXXXXXXX           _         /* FLAG GENERATION:
+       CALIMAX                IN        /* Bad hole calculation; max allowed oversize hole
+       DRHOMAX                G/CM3     /* Bad hole calculation; max allowed DRHO reading
+       BADHOLE_POROSITY_OPTION ALPHA*8   /* Option for porosity calculation if bad hole
+       SECONDARY_POR_CALC     ALPHA*8   /* Option for porosity calculation if density log is missing
+       COAL_METHOD            ALPHA*8   /* Coal_flag to be input or calculated
+       COALCUT_DEN            G/CM3     /* Density log cutoff for COAL
+       COALCUT_NEUT           V/V       /* Neutron log cutoff for COAL
+       CARB_METHOD            ALPHA*8   /* Carb_flag to be input or calculated
+       CARBCUT_DEN            G/CM3     /* Density log cutoff for CARB
+       CARBCUT_NEUT           V/V       /* Neutron log cutoff for CARB
+       XXXXXXXXXX             _         /* VSH EVALUATION:
+       VSH_FLAG               ALPHA*8   /* Shale volume calcualtion method
+       GRCLEAN                GAPI      /* Gamma Ray in clean sand
+       GRSHALE                GAPI      /* Gamma Ray in shale
+       PHINMA0                V/V       /* Neutron correction to sandstone units at PHI=0
+       PHINMA30               V/V       /* Neutron correction to sandstone units at PHI=30
+       PHINSH                 V/V       /* Neutron porosity value in shale (frac)
+       RHOSH                  G/CM3     /* Bulk density value in shale
+       XXXXXXXXXXXXXXXX       _         /* FLUID PROPERTIES:
+       XXXXXXXXXXX            _         /* POROSITY EVALUATION:
+       RHOFL_METHOD           ALPHA*8   /* Bulk fluid density to be calculated or defined as constant
+       CONSTANT_RHOFL         G/CM3     /* Bulk fluid density
+       OBM_INVASION           UNITLESS  /* Invasion: OBM fraction of calculated "1-SXO"
+       WBM_INVASION           UNITLESS  /* Invasion: WBM fraction of calculated "SXO"
+       MUDINVASION_SHALE      UNITLESS  /* Invasion: Mud fraction in invaded zone in shaly intervals
+       RHOMA_OPT              ALPHA*8   /* Matrix density to be calculated or by use of input
+       RHOMA                  G/CM3     /* Matrix density in clean sandstone
+       RHODSH                 G/C3      /* Matrix density in shale
+       RHOMAMAX               G/CM3     /* Upper limit for apparent matrix denisty (RHOMAA)
+       PORMAX                 V/V       /* Maximum allowed porosity (frac)
+       DTMA                   US/FT     /* Sonic transit time of sandstone matrix
+       DTSH                   US/FT     /* Sonic transit time of bulk shale
+       DTGAS                  US/FT     /* Sonic transit time of formation gas
+       DTOIL                  US/FT     /* Sonic transit time of formation oil
+       DTW                    US/FT     /* Sonic transit time of formation water
+       XXXXXXXXXXXXXXXXXXX    _         /* SATURATION EVALUATION:
+       SAT_MODEL_FLAG         ALPHA*10  /* Water saturation model
+       RSH                    OHM.M     /* Shale resistivity
+       A                      UNITLESS  /* Lithology coefficient
+       M                      UNITLESS  /* Cementation exponent
+       N                      UNITLESS  /* Saturation exponent
+       SXO_FLAG               ALPHA*10  /* SXO calculation method
+       CONSTANT_SXOT                    /* Constant SXOT
+       XXXXXXXXXXXXXXX        _         /* NET FLAG EVALUATION:
+       SANDCUT_VSH            V/V       /* Shale volume cutoff criteria for net calcualtion
+       SANDCUT_PERM           MD        /* Permeability cutoff criteria for net calcualtion
+       SANDCUT_PORO           V/V       /* Porosity cutoff criteria for net calcualtion
+       SANDCUT_SWT            V/V       /* SWT cutoff criteria for net calcualtion
+       XXXXXXXX               _         /* PERMEABILITY EVALUATION:
+       AKH                    UNITLESS  /* Permeability coefficient - Constant term
+       BKH                    UNITLESS  /* Permeability coefficient - 1st porosity term
+       CKH                    UNITLESS  /* Permeability coefficient - 2nd porosity term
+       PERMMAX                MD        /* Maximum allowed permeabilty
+                                        /*
+                                        /* LOGS ---------------------------
+                                        /*
+       DEPTH                  METERS    /* Measured Depth Curve (mMD)
+       TVDMSL                 METERS    /* True Vertical Depth sub sea(mTVDMSL)
+       COAL_FLAG_INPUT        UNITLESS  /* External Coal Flag Curve
+       FLUID_FLAG             UNITLESS  /* Fluid flag, W=1, O=2, G=3
+       CARB_FLAG_INPUT        UNITLESS  /* External Carb Flag Curve
+       BS                     IN        /* Drilling Bit Size
+       RHOMA_INPUT            G/CM3     /* Matrix density input
+       CALI                   IN        /* Caliper
+       DRHO                   G/CM3     /* Delta rho
+       DT                     US/FT     /* Compressional Sonic Transit Time
+       GR                     GAPI      /* Gamma Ray
+       NPHI                   V/V       /* Neutron Porosity Limestone Unit
+       RHOB                   G/CM3     /* Density Log
+       RD                     OHM.M     /* Formation Deep Resistivity
+       RXO                    OHM.M     /* Flushed zone resisitivity. Set to RT if RXO is not present
+
+LOCAL
+       hif                              /* Hydrogen index Estimated from SXOE
+       temp_b                           /* T at 1200 m TVD MSL
+       temp_c                           /* T at 1800 m TVD MSL
+       phis_sh                          /* Shale bound porosity from sonic
+       loop_count_por                   /* Number of POR_LOOP iterations
+       loop_count_vsh                   /* Number of VSH_LOOP iterations
+       rhoh                             /* Hydrocarbon Density at Reservoir Conditions
+       corrnex                          /* Neutron Excavation Effect Correction
+       diffa                            /* Difference between VSHDN-VSHGR
+       diffb                            /* Difference between VSHGR-VSHDN
+       drhoabs                          /* Absolute value of DRHO
+       dth                              /* Hydrocarbon Sonic Transit Time
+       dtmf                             /* Mud Filtrate Sonic Transit Time
+       cp                               /* Compaction factor for sonic porosity calc
+       c                                /* Constant for sonic porosity calc
+       dummy                            /* Dummy Processing Parameter
+       gasflag                          /* Gas Indicator Flag
+       himf                             /* Mud Filtrate Hydrogen Index
+       nacl_flushed                     /* Bulk salinity in flushed zone
+       norm                             /* Normalization Variable For Total Volume
+       invasion                         /* Fraction of mud filtrate in invaded zone
+       nphicorr                         /* Neutron Porosity Corrected for Sandstone Matrix and Borehole
+       oversize                         /* Oversized borhole
+       phitest                          /* Porosity Iteration Loop Convergence Test Parameter
+       porloop                          /* Porosity Iteration Loop Counter
+       rhomfa                           /* Apparent Mud Filtrate Density
+       rmf                              /* Mud Filtrate Resistivity
+       r_flushed                        /* Bulk fluid resistivity in flushed zone
+       s                                /* Short Form Temporary Fluid Salinity
+       slope                            /* Slope for VSH from Density/Neutron LFP
+       swe_archie                       /* Virgin Zone Effective Saturation From Archie Saturation Model
+       swe_indonesia                    /* Virgin Zone Effective Saturation From Indonesia Saturation Model
+       sw_archie                        /* Virgin Zone Saturation From Archie Saturation Model
+       sw_indonesia                     /* Virgin Zone Saturation From Indonesia Saturation Model
+       swbnmr                           /* Bound Water Saturation Derived From NMR BFV Curve
+       sxoe_archie                      /* Flushed Zone Effective Saturation From Archie Saturation Model
+       sxo_archie                       /* Flushed Zone Saturation From Archie Saturation Model
+       sxoe_indonesia                   /* Flushed Zone Effective Saturation From Indonesia Saturation Mode
+       sxo_indonesia                    /* Flushed Zone Saturation From Indonesia Saturation Model
+       t                                /* Short Form Temporary Temperature
+       vshloop                          /* Shale Volume Iteration Loop Counter
+       vshtest                          /* Shale Volume Iteration Loop Convergence Test Parameter
+
+OUTPUT
+                                        /*
+                                        /* LOGS ---------------------------
+                                        /*
+       PHIS_TOTAL             V/V       /* Total porosity derived from Sonic log
+       BADHOLE_FLAG           UNITLESS  /* Bad hole Indicator Flag
+       BVBW                   V/V       /* Bulk Volume Bound Water in Virgin Zone
+       BVWT                   V/V       /* Bulk Volume Water in Virgin Zone
+       BVWE                   V/V       /* Effective Bulk Volume Water in Virgin Zone
+       BVXT                   V/V       /* Bulk Volume Water in Invaded Zone 
+       BVXE                   V/V       /* Effective Bulk Volume Water in Invaded Zone 
+       CARB_FLAG              UNITLESS  /* Carb Indicator Flag (1=carb, 0=no carb)
+       COAL_FLAG              UNITLESS  /* Coal Indicator Flag (1=coal, 0=no coal)
+       CPI_QUAL_FLAG          UNITLESS  /* CPI quality flag curve
+       HIH                    V/V       /* Hydrocarbon Hydrogen Index
+       KLOGH                  MD        /* Castbert model. Calculated Horizontal Permeability from Logs
+       PHID                   V/V       /* Density Porosity 
+       PHIS                   V/V       /* Sonic Porosity
+       PHIE                   V/V       /* Final Effective Porosity
+       PHIT                   V/V       /* Final Total Porosity
+       NPHIC                  V/V       /* Corrected neutron pososity
+       NET_FLAG               UNITLESS  /* Reservoir flag (1 = reservoir; 0 = no reservoir).
+       RHO_FL                 G/CM3     /* Invaded Zone Fluid Density
+       RHOMAA                 G/CM3     /* Apparent Matrix Density from Logs
+       RW                     OHM.M     /* Resistivity of Formation Water
+       SAND_FLAG              UNITLESS  /* Net Sand flag (1 = sand; 0 = no sand).
+       SWT                    V/V       /* Virgin Zone Total Water Saturation
+       SWE                    V/V       /* Virgin Zone Effective Water Saturation
+       SXOT                   V/V       /* Flushed Zone Total Water Saturation
+       SXOE                   V/V       /* Flushed Zone Effective Water Saturation
+       FTEMP                  DEGC      /* Formation Temperature
+       SXO_MF                 V/V       /* Flushed Zone Mud Filtrate Saturation
+       MISSING_LOGS           UNITLESS  /* Flag - Essensial input logs missing?
+       SXO_W                  V/V       /* Flushed Zone Water Saturation
+       VSH                    V/V       /* Final Shale Volume from Chosen Indicators
+       VSHDN                  V/V       /* Shale Volume from Density-Neutron
+       VSHGR                  V/V       /* Shale Volume from GR
+       VSHMIN                 V/V       /* Minimum Shale Volume 
+       WELLTEMP               DEGC      /* Wellbore temperature
+       RHOHA                  G/CM3     /* Hydrocarbon Apparent Density
+       RHOMF                  G/CM3     /* Mud filtrate Density
+       RHOW                   G/CM3     /* Formation water density
+       MISSING_RHOB_LOG       UNITLESS  /* Rhob log missing
+       PHIT_SH                V/V       /* Total porosity shale
+       DTF                    US/FT     /* Invaded Zone Fluid Transit Time
+       DTMAA                  US/FT     /* Apparent matrix density from apparent matrix density
+       HIW                    V/V       /* Water Hydrogen Index
+       P                      PSI       /* Short Form Temporary Reservoir Pressure
+
+START:
+  
+  /* ------------------------------------------------------------------------------------
+  /*                  PETROPHYSICAL EVALUATION MODEL MARTIN LINGE
+  /*                          (Based on Johan Castberg 2021 model)
+  /*                                     November 2021 
+  /* ------------------------------------------------------------------------------------
+
+dowhile GET_FRAME ()
+
+  /* ------------------------------------------------------------------------------------
+  /* GENERATE MISSING LOGS, BADHOLE & CPI QUALITY FLAG 
+  /* ------------------------------------------------------------------------------------
+  MISSING_LOGS=0
+  MISSING_RHOB_LOG=0
+  if(GR==missing) then
+    MISSING_LOGS=1
+  endif 
+  if(RHOB==missing) then
+    MISSING_LOGS=1
+    MISSING_RHOB_LOG=1
+  endif   
+  if(RD==missing) then
+    MISSING_LOGS=1
+  endif 
+  if(NPHI==missing) then
+    MISSING_LOGS=1
+  endif
+  MISSING_LOGS=LIMIT(MISSING_LOGS,0,1)  
+  MISSING_RHOB_LOG=LIMIT(MISSING_RHOB_LOG,0,1)  
+  
+  oversize=CALI-BS
+  drhoabs=ABS(DRHO)
+  if(drhoabs>DRHOMAX & oversize>CALIMAX) then
+    BADHOLE_FLAG=1
+  else
+    BADHOLE_FLAG=0
+  endif
+  BADHOLE_FLAG=LIMIT(BADHOLE_FLAG,0,1)   
+  
+  CPI_QUAL_FLAG=1 
+  if(BADHOLE_FLAG>0.5) then
+    CPI_QUAL_FLAG=2
+  endif
+  if(RHOB==missing) then
+    CPI_QUAL_FLAG=0
+  endif
+  CPI_QUAL_FLAG=LIMIT(CPI_QUAL_FLAG,0,2)  
+  
+  /* ------------------------------------------------------------------------------------------------------------
+  /* GENERATE FLUID FLAG
+  /* On Martin Linge we currently have a manually created INTERVAL set called STAT_FLUID and a FLUID_FLAG curve in STAT_CPI
+  /* The code below is therfore kept as is but currently not used. 
+  /* ------------------------------------------------------------------------------------------------------------
+  /*if(TVDMSL<GOC) then
+  /*FLUID_FLAG=3
+  /*elseif(TVDMSL>GOC & TVDMSL<OWC) then
+  /*FLUID_FLAG=2
+  /*else
+  /*FLUID_FLAG=1
+  /*endif
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE FORMATION TEMPERATURE PROFILE
+  /* FTEMP from Seabed in m TVDMSL (=water depth) to TD. 6 degC at Seabed (SFT)
+  /* ------------------------------------------------------------------------------------
+  if(TVDMSL<WATDEP) then 
+    FTEMP=SFT
+  endif
+  
+  IF(TVDMSL<=1200) THEN
+   FTEMP= GRAD_A*TVDMSL+(SFT-GRAD_A*WATDEP)
+   endif
+   
+/*Local, temp at 1200 m TVD MSL
+   temp_b=GRAD_A*1200+(SFT-GRAD_A*WATDEP)
+   
+   IF(TVDMSL>1200)THEN
+   FTEMP= GRAD_B*TVDMSL+(temp_b-GRAD_B*1200)
+   endif
+   
+ /*Local, temp at 1800 m TVD MSL
+  
+   temp_c=GRAD_B*1800+(temp_b-GRAD_B*1200)
+   
+   
+   IF (TVDMSL>1800) THEN
+   FTEMP= GRAD_C*TVDMSL+(temp_c-GRAD_C*1800)
+   endif
+  
+   
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE WELL TEMPERATURE PROFILE
+  /* ------------------------------------------------------------------------------------
+    WELLTEMP=BHT-((BHT-SFT)/(BHTTVD-WATDEP))*(BHTTVD-TVDMSL)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE FORMATION WATER PROPERTIES
+  /* ------------------------------------------------------------------------------------
+   s=NACLW*0.001
+   p=PRES*14.504
+   t=FTEMP
+  rhow=0.9974+0.000803*s+0.00000178*p-0.0001*(1.07+0.01578*s-0.000254*p)~
+       *t-0.000001*(2.75-0.0073*s+0.00003*p)*t*t
+  hiw=rhow*(1-(s/1000.0))
+  RW=(0.0123+(3647.5/NACLW**0.955))*(45.4/(t+21.5))
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE MUD FILTRATE PROPERTIES
+  /* ------------------------------------------------------------------------------------
+  s=NACLMF*0.001
+  t=WELLTEMP
+  if(MUD_FLAG=='WATER') then
+    rhomf=0.9974+0.000803*s+0.00000178*p-0.0001*~
+     (1.07+0.01578*s-0.000254*p)*t-0.000001*(2.75-0.0073*s+0.00003*p)*t*t
+    himf=rhomf*(1.0-(s/1000.0))
+    rmf=(0.0123+(3647.5/NACLMF**0.955))*(45.4/(t+21.5))
+  else
+    rmf=RW
+    rhomf=RHOOBM
+    rhomfa=1.22*rhomf-0.118
+    rhomfa=MIN(rhomfa,rhow)
+    himf=9*((4-2.5*rhomf)/(16-2.5*rhomf))*rhomf
+    himf=MIN(himf,1)
+  endif
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE HYDROCARBON PROPERTIES
+  /* Using CPI_OB.FLUID_FLAG; GAS==3, OIL==2, WATER==1
+  /* ------------------------------------------------------------------------------------
+  
+  if(fluid_flag==3) then
+    rhoh=RHOGAS
+    dth=DTGAS
+  else
+    rhoh=RHOOIL
+    dth=DTOIL
+  endif
+  
+  if(rhoh>0.25) then  
+    hih=1.28*rhoh
+    hih=MIN(hih,1)
+    rhoha=1.22*rhoh-0.118
+    rhoha=MIN(rhoha,rhow)
+   else
+    hih=2.2*rhoh
+    hih=MIN(hih,1)
+    rhoha=1.325*rhoh-0.188
+    rhoha=MIN(rhoha,rhow)
+  endif
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE INITIAL SHALE VOLUME ESTIMATE FROM GAMMA RAY 
+  /* ------------------------------------------------------------------------------------
+  VSHGR=(GR-GRCLEAN)/(GRSHALE-GRCLEAN)
+  VSHGR=LIMIT(VSHGR,0.001,0.99)
+  VSH=VSHGR
+
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE FIRST ESTIMATE OF SHALE BOUND POROSITY  
+  /* ------------------------------------------------------------------------------------
+  phit_sh=(RHODSH-RHOSH)/(RHODSH-rhow)
+  phit_sh=LIMIT(phit_sh,0.0001,1)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE FIRST ESTIMATE OF DENSITY POROSITY   
+  /* ------------------------------------------------------------------------------------
+  if(RHOMA_OPT=='INPUT') then
+  RHOMAA=RHOMA_INPUT
+  else
+  RHOMAA=(RHOMA*(1-VSH))+VSH*RHODSH
+  endif
+  RHOMAA=MIN(RHOMAA,RHOMAMAX)
+    
+  PHID=(RHOMAA-RHOB)/(RHOMAA-rhomf)
+  PHID=LIMIT(PHID,0.001,PORMAX)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE FIRST ESTIMATE OF SONIC POROSITY
+  /* ------------------------------------------------------------------------------------ 
+  /* From LFP: PHIS=(DTMAA-DT)/(DTMAA-DTW) and PHIS_SH=(DTMAA-DTSH)/(DTMAA-DTW) fjernes?
+  
+  /* DTMAA=47.5+((2.71-RHOMAA)*(55.5-47.5/2.71-2.65)) fra LFP-rutine
+  DTMAA=47.5+((2.71-RHOMAA)*133.33)
+  phis_sh=(DTMA-DTSH)/(DTMA-DTW)
+  c=1
+  cp=(DTSH*c)/100
+  PHIS=(((DT-DTMA)/(DTW-DTMA))/cp)-(VSH*phis_sh)
+  
+  /* Original in Script: PHIS=((DT-DTMA)/(DTW-DTMA))-VSH*((DTSH-DTMA)/(DTW-DTMA)) - fjernes?
+  PHIS=LIMIT(PHIS,0.001,PORMAX)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CHOOSE SECONDARY POROSITY METHOD 
+  /* ------------------------------------------------------------------------------------
+   if(MISSING_RHOB_LOG>0.5) then
+     if(SECONDARY_POR_CALC=='SONIC') then 
+      /* PHIE=PHIS
+      /* PHIT=PHIE+(VSH*phit_sh)
+        PHIT=PHIS
+        PHIE=PHIT-(VSH*phit_sh)
+        CPI_QUAL_FLAG=2
+        if(DT==missing) then
+          CPI_QUAL_FLAG=0
+        endif
+      else
+        PHIT=PHID
+        PHIE=PHIT-(VSH*phit_sh)
+      endif
+   else
+     PHIT=PHID
+     PHIE=PHIT-(VSH*phit_sh)
+   endif
+  
+  /* -----------------------------------------------------------------------------------
+  /* CHOOSE POROSITY AND VSH METHOD IF BAD HOLE
+  /* -----------------------------------------------------------------------------------
+   if(BADHOLE_FLAG>0.5) then
+     if(BADHOLE_POROSITY_OPTION=='SONIC') then
+       PHIT=PHIS       
+       /* PHIT=PHIS+(VSH*phit_sh)
+       if (DT==missing) then
+         CPI_QUAL_FLAG=0
+       endif
+     elseif(BADHOLE_POROSITY_OPTION=='DENSITY') then
+       PHIT=PHID
+     else
+       PHIT=missing
+       CPI_QUAL_FLAG=0     
+     endif
+     PHIE=PHIT-(VSH*phit_sh)
+   endif
+
+   PHIT=LIMIT(PHIT,0.001,PORMAX)
+   PHIE=LIMIT(PHIE,0.001,PORMAX)
+
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE FIRST ESTIMATE OF NEUTRON SHALE INDICATOR
+  /* ------------------------------------------------------------------------------------
+   if(NPHI>0.1) then
+     if(NEUTRON_LOG=='LWD') then   
+       if(BS>9) then
+         NPHIC=(-0.029+1.27*NPHI)
+       else
+         NPHIC=(-0.05+1.445*NPHI)  
+       endif  
+     else
+       NPHIC=NPHI
+     endif 
+   else
+     NPHIC=NPHI
+   endif
+   
+   if(NPHIC<0.30) then
+     nphicorr=NPHIC+PHINMA0+(NPHIC/0.30)*(PHINMA30-PHINMA0)
+    else
+     nphicorr=NPHIC+PHINMA30
+    endif
+    VSHDN=(nphicorr-PHIE*hih)/PHINSH
+    VSHDN=LIMIT(VSHDN,0.001,0.99)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE INITIAL ESTIMATE OF MINIMUM SHALE VOLUME
+  /* ------------------------------------------------------------------------------------
+  VSHMIN=MIN(VSHDN,VSHGR)
+
+  /* ------------------------------------------------------------------------------------
+  /* CHOOSE SHALE ESTIMATION METHOD BASED UPON VSH_FLAG PARAMETER
+  /* ------------------------------------------------------------------------------------
+  if(VSH_FLAG=='MINIMUM') then
+    VSH=VSHMIN
+  elseif(VSH_FLAG=='GAMMARAY') then
+    VSH=VSHGR
+  elseif(VSH_FLAG=='DENSNEUT') then
+    VSH=VSHDN
+  endif
+
+  if(BADHOLE_FLAG>0.5) then
+    VSH=VSHGR
+  endif
+  
+  /* ------------------------------------------------------------------------------------
+  /* START OF ITERATION LOOPS FOR POROSITY, SATURATION, SHALE VOLUME AND MATRIX DENSITY
+  /* ------------------------------------------------------------------------------------
+  loop_count_por=0
+  loop_count_vsh=0
+  vshtest=0
+  phitest=0
+  vshloop=0
+  do           /* vshloop
+  porloop=0
+  do           /* porloop  
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE INVADED ZONE WATER SATURATION USING THE ARCHIE EQUATION
+  /* ------------------------------------------------------------------------------------
+  if(SXO_FLAG<>'RXO') then
+    RXO=RD
+  endif  
+
+  SXO_archie=((A*rmf)/((PHIT**M)*RXO))**(1/N)
+  SXO_archie=LIMIT(SXO_archie,0.001,0.99)
+  SXOE_archie=(1-((1-SXO_archie)*PHIT/PHIE))
+  SXOE_archie=LIMIT(SXOE_archie,0.001,0.99)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE INVADED ZONE WATER SATURATION USING THE INDONESIA EQUATION
+  /* ------------------------------------------------------------------------------------
+  SXOE_indonesia=(SQRT(RXO)*(VSH**(1.0-0.5*VSH)/SQRT(RSH)+PHIE**(0.5*M)/SQRT(A*rmf)))~
+                   **(-2.0/N)
+  SXOE_indonesia=LIMIT(SXOE_indonesia,0.001,0.99)
+  SXO_indonesia=(1-((1-SXOE_indonesia)*PHIE/PHIT))
+  SXO_indonesia=LIMIT(SXO_indonesia,0.001,0.99)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CHOOSE SXO SATURATION MODEL
+  /* ------------------------------------------------------------------------------------
+  if(SAT_MODEL_FLAG=='ARCHIE') then
+    SXOE=SXOE_archie
+    SXOT=SXO_archie
+  elseif(SAT_MODEL_FLAG=='INDONESIA') then
+    SXOE=SXOE_indonesia
+    SXOT=SXO_indonesia
+  endif
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE VIRGIN ZONE WATER SATURATION USING THE ARCHIE EQUATION
+  /* ------------------------------------------------------------------------------------
+  SW_archie=((A*RW)/((PHIT**M)*RD))**(1/N)
+  SW_archie=LIMIT(SW_archie,0.001,0.99)
+  SWE_archie=(1-((1-SW_archie)*PHIT/PHIE))
+  SWE_archie=LIMIT(SWE_archie,0.001,0.99)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE VIRGIN ZONE WATER SATURATION USING THE INDONESIA EQUATION
+  /* LIMIT 0.01<SWE<1
+  /* ------------------------------------------------------------------------------------
+  SWE_indonesia=(SQRT(RD)*(VSH**(1.0-0.5*VSH)/SQRT(RSH)+PHIE**(0.5*M)/SQRT(A*RW)))~
+   **(-2.0/N)
+  SWE_indonesia=LIMIT(SWE_indonesia,0.001,0.99)
+  SW_indonesia=(1-((1-SWE_indonesia)*PHIE/PHIT))
+  SW_indonesia=LIMIT(SW_indonesia,0.001,0.99)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CHOOSE SW SATURATION MODEL
+  /* ------------------------------------------------------------------------------------
+  if(SAT_MODEL_FLAG=='ARCHIE') then
+    SWE=SWE_archie
+    SWT=SW_archie
+  elseif(SAT_MODEL_FLAG=='INDONESIA') then
+    SWE=SWE_indonesia
+    SWT=SW_indonesia
+  endif
+  
+  /* ------------------------------------------------------------------------------------
+  /* CHOOSE SXO CALCULATION METHOD
+  /* ------------------------------------------------------------------------------------
+  if(SXO_FLAG=='SWT') then
+    SXOT=SWT
+    SXOE=SWE
+  elseif(SXO_FLAG=='CONSTANT') then
+    SXOT=CONSTANT_SXOT
+    SXOE=missing
+    if(VSH>0.5) then
+      SXOT=SWT
+    endif
+  else
+    SXOT=SXOT
+    SXOE=SXOE
+  endif
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE FLUID DENSITY, HYDROGEN INDEX AND TRANSIT TIME AS A FUNCTION OF SXOE
+  /* NEUTRON INVASION FACTOR 0=No Invasion, 1=Full Invasion
+  /* ------------------------------------------------------------------------------------
+  if(MUD_FLAG=='WATER') then
+     invasion=WBM_INVASION
+     if(VSH>0.5) then
+        invasion=MUDINVASION_SHALE
+     endif
+     RHO_FL=SXOT*(invasion*rhomf+(1.0-invasion)*rhow)+(1.0-SXOT)*rhoha
+     hif=SXOT*(invasion*himf+(1.0-invasion)*hiw)+(1.0-SXOT)*hih
+     dtf=(SWT*DTW)+(1.0-SWT)*dth
+     SXO_MF=SXOT*invasion
+     SXO_W=SXOT*(1-invasion)
+  /* nacl_flushed=NACLMF*invasion+(NACLW*(1-invasion))
+  /* r_flushed=(0.0123+(3647.5/nacl_flushed**0.955))*(45.4/(t+21.5)) - TO BE USED AS INPUT TO SXO CALCULATION (skipped in JC)
+  else
+     invasion=OBM_INVASION
+     if(VSH>0.5) then
+        invasion=MUDINVASION_SHALE
+     endif
+     RHO_FL=SXOT*rhow+(1.0-SXOT)*(invasion*rhomfa+(1.0-invasion)*rhoha)
+     hif=SXOT*hiw+(1.0-SXOT)*(invasion*himf+(1.0-invasion)*hih)
+     dtf=(SWT*DTW)+((1.0-SWT)*dth)
+     SXO_MF=(1-SXOT)*invasion
+     SXO_W=SXOT
+  endif  
+
+  if(RHOFL_METHOD=='CONSTANT') then
+     RHO_FL=CONSTANT_RHOFL
+  else
+     RHO_FL=RHO_FL
+  endif 
+  
+  /* ------------------------------------------------------------------------------------
+  /* RECALCULATE DENSITY POROSITY USING UPDATED RHOF AND VSH
+  /* ------------------------------------------------------------------------------------
+  
+  PHID=(RHOMAA-RHOB)/(RHOMAA-RHO_FL)
+  PHID=LIMIT(PHID,0.001,PORMAX)
+  
+  /*-------------------------------------------------------------------------------------
+  /* RECALCULATE SONIC POROSITY USING UPDATED DTF AND VSH
+  /* ------------------------------------------------------------------------------------
+  PHIS=(((DT-DTMA)/(dtf-DTMA))/cp)-(VSH*phis_sh)
+  /* Original in Script: PHIS=((DT-DTMA)/(dtf-DTMA))-VSH*((DTSH-DTMA)/(dtw-DTMA))
+  PHIS=LIMIT(PHIS,0.001,PORMAX)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CHOOSE SECONDARY POROSITY METHOD 
+  /* ------------------------------------------------------------------------------------
+   if(MISSING_RHOB_LOG>0.5) then
+     if(SECONDARY_POR_CALC=='SONIC') then 
+        PHIT=PHIS
+        PHIE=PHIT-(VSH*phit_sh)
+        CPI_QUAL_FLAG=2
+        if(DT==missing) then
+          CPI_QUAL_FLAG=0
+        endif
+      else
+        PHIT=PHID
+        PHIE=PHIT-(VSH*phit_sh)
+      endif
+   else
+     PHIT=PHID
+     PHIE=PHIT-(VSH*phit_sh)
+   endif
+   /* if(SECONDARY_POR_CALC=='SONIC' & MISSING_RHOB_LOG>0.5) then
+      /*VSH=VSHGR
+      /*PHIS=(((DT-DTMA)/(dtf-DTMA))/cp)-(VSH*phis_sh)
+      /*PHIT=PHIS
+      /*PHIE=PHIT-(VSH*phit_sh)
+      /*CPI_QUAL_FLAG=2
+      /*if(DT==missing) then
+       /*CPI_QUAL_FLAG=0
+      /*endif
+    /*else
+      /*PHIT=PHID
+      /*PHIE=PHIT-(VSH*phit_sh)
+    /*endif
+  
+   if(BADHOLE_FLAG>0.5) then
+     if(BADHOLE_POROSITY_OPTION=='SONIC') then
+       PHIT=PHIS       
+       if (DT==missing) then
+         CPI_QUAL_FLAG=0
+       endif       
+     elseif(BADHOLE_POROSITY_OPTION=='DENSITY') then
+       PHIT=PHID
+     else
+       PHIT=missing
+       CPI_QUAL_FLAG=0   
+     endif
+     PHIE=PHIT-(VSH*phit_sh)
+  endif
+  
+    PHIT=LIMIT(PHIT,0.001,PORMAX)
+    PHIE=LIMIT(PHIE,0.001,PORMAX)
+
+  porloop=porloop+1
+  loop_count_por=loop_count_por+1
+  if(ABS(PHIT-phitest)<0.0005) then
+    porloop=11
+  endif
+  phitest=PHIT
+  until porloop>=10
+  
+  /* ------------------------------------------------------------------------------------
+  /* END OF ITERATION LOOPS FOR POROSITY, SATURATION
+  /* ------------------------------------------------------------------------------------
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE NEUTRON EXCAVATION EFFECT CORRECTION if GAS ZONE
+  /* ------------------------------------------------------------------------------------
+  if(rhoh<0.25) then
+    corrnex=(2.0*(PHIT*PHIT)*hif+0.04*PHIT)*(1.0-hif)
+  else
+    corrnex=0.0
+  endif
+  
+  /* ------------------------------------------------------------------------------------
+  /* RECALCULATE VSHDN BASED UPON UPDATED PHIE AND HIF
+  /* ------------------------------------------------------------------------------------
+  VSHDN=(nphicorr+corrnex-PHIE*hif)/PHINSH
+  VSHDN=LIMIT(VSHDN,0.001,0.99)
+ 
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE INITIAL ESTIMATE OF MINIMUM SHALE VOLUME
+  /* ------------------------------------------------------------------------------------
+  VSHMIN=MIN(VSHDN,VSHGR)
+  
+  /* ------------------------------------------------------------------------------------
+  /* CHOOSE SHALE ESTIMATION METHOD BASED UPON VSH_FLAG PARAMETER
+  /* ------------------------------------------------------------------------------------
+  if(VSH_FLAG=='MINIMUM') then
+    VSH=VSHMIN
+  elseif(VSH_FLAG=='GAMMARAY') then
+    VSH=VSHGR
+  elseif(VSH_FLAG=='DENSNEUT') then
+    VSH=VSHDN
+  endif
+
+   if(BADHOLE_FLAG>0.5) then
+     VSH=VSHGR
+   endif 
+  
+  /* ------------------------------------------------------------------------------------
+  /* CALCULATE MATRIX DENSITY  
+  /* ------------------------------------------------------------------------------------
+  if(RHOMA_OPT=='INPUT') then
+     RHOMAA=RHOMA_INPUT
+  else
+     RHOMAA=((RHOMA*(1-VSH))+VSH*RHODSH) 
+  endif 
+  RHOMAA=MIN(RHOMAA,RHOMAMAX)
+  
+  /* ------------------------------------------------------------------------------------
+  loop_count_vsh=loop_count_vsh+1
+  vshloop=vshloop+1
+  if(ABS(VSH-vshtest)<0.001 & vshloop>1.5) then
+    vshloop=11
+  endif
+  vshtest=VSH
+  until vshloop>=10
+  /* --------------------------------------------------------------------------
+  /* END OF ITERATION LOOP FOR SHALE VOLUME AND MATRIX DENSITY
+  /* --------------------------------------------------------------------------
+  
+  /* --------------------------------------------------------------------------
+  /* NORMALIZE VSH AND PHIE CURVES IN SHALE ZONES SUCH THAT VSH+PHIE < 1
+  /* --------------------------------------------------------------------------
+  if(PHIT==missing) THEN
+    VSH=missing
+  endif
+  norm=VSH+PHIE
+  if(norm>1) THEN
+    VSH=VSH/norm
+    PHIE=PHIE/norm
+  endif
+  
+  /* --------------------------------------------------------------------------
+  /* CALCULATE PERMEABILITY AND LIMIT TO MAXIMUM ALLOWABLE VALUE
+  /* --------------------------------------------------------------------------
+
+  /*KLOGH = 10.0**(AKH+(BKH*PHIT)+(CKH*(PHIT*PHIT)))
+  /*KLOGH=LIMIT(KLOGH,0.0001,PERMMAX)
+ 
+  /* --------------------------------------------------------------------------
+  /* GENERATE COAL & CARB FLAG AND CUTOFF RESULT CURVES IN COAL/CARB
+  /* --------------------------------------------------------------------------
+  if(COAL_METHOD=='INPUT') then
+    COAL_FLAG=COAL_FLAG_INPUT
+  else
+    if(BADHOLE_FLAG==0.0) then
+      if(RHOB<COALCUT_DEN) and (NPHI>COALCUT_NEUT) then
+        COAL_FLAG=1.0
+      else
+        COAL_FLAG=0.0
+      endif
+    else
+      COAL_FLAG=0.0
+    endif
+  endif
+  COAL_FLAG=LIMIT(COAL_FLAG,0,1) 
+  
+  if(CARB_METHOD=='INPUT') then
+    CARB_FLAG=CARB_FLAG_INPUT
+  else
+    if(BADHOLE_FLAG==0.0) then
+      if(RHOB>CARBCUT_DEN) and (NPHI<CARBCUT_NEUT) then
+        CARB_FLAG=1.0
+      else
+        CARB_FLAG=0.0
+      endif
+    else
+      CARB_FLAG=0.0
+    endif
+  endif
+  
+  CARB_FLAG=LIMIT(CARB_FLAG,0,1) 
+  
+  if(COAL_FLAG>0.001) then
+    PHIE=0.0001;PHIT=0.0001;PHID=0.0001;PHIS=0.0001;RHOMAA=1.4
+    VSHGR=0.0001;VSHDN=0.0001;VSH=0.0001
+    SWE=0.999;SXOE=0.999;SWT=0.999;SXOT=0.999;KLOGH=0.0001
+  endif
+  
+  if(CARB_FLAG>0.001) then
+    PHIE=0.0001;PHIT=0.0001;PHID=0.0001;PHIS=0.0001;RHOMAA=3
+    VSHGR=0.0001;VSHDN=0.0001;VSH=0.0001
+    SWE=0.999;SXOE=0.999;SWT=0.999;SXOT=0.999;KLOGH=0.0001
+  endif
+  
+  /* --------------------------------------------------------------------------
+  /* GENERATE  NET SAND, -RESERVOIR AND -PAY CURVES FROM CUTOFFS 
+  /* --------------------------------------------------------------------------
+  if (PHIT>SANDCUT_PORO & VSH<SANDCUT_VSH) then
+    NET_FLAG=1
+  else
+    NET_FLAG=0
+  endif
+
+  
+
+  /* --------------------------------------------------------------------------
+  /* CLEAN UP IN CPI_QUAL_FLAG = 0
+  /* --------------------------------------------------------------------------
+   if(RD==missing) then
+    CPI_QUAL_FLAG=0
+   endif
+  
+  if(CPI_QUAL_FLAG==0) then
+   VSH=VSHGR     
+   SAND_FLAG=missing
+   NET_FLAG=missing
+  
+   /* PHIE=-999.25;PHIT=-999.25;PHID=-999.25;PHIS=-999.25;RHOMAA=-999.25
+   /* SWE=-999.25;SXOE=-999.25;SWT=-999.25;SXOT=-999.25;KLOGH=-999.25     
+  endif
+
+  /* --------------------------------------------------------------------------
+  /* CALCULATE BULK VOLUME WATER CURVES 
+  /* --------------------------------------------------------------------------
+  BVWE=PHIE*SWE
+  BVWT=PHIT*SWT
+  BVXE=PHIE*SXOE
+  BVXT=PHIT*SXOT
+    
+call PUT_FRAME ()
+
+enddo
+
+end

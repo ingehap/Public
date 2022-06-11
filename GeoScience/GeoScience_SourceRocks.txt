@@ -1,0 +1,67 @@
+25 - 60 degC		undermature; biogenic methan
+60 - 180 degC		catagenesis; oil & gas window
+180 degC+		postmature; graphite
+
+HI = S2 * 100 mg/g / %TOC
+OI = S3 * 100 mg/g / %TOC
+PI = production index
+
+HI > 600	oilprone kerogen I
+HI < 200	gasprone kerogen III
+OI > 50		immature kerogen
+
+XRF (Brita; ex 30/8-1 SR and 25/11-21S)
+- mudforurensning fra baritt, calcite, salt
+- Mica = DETR_MUSC + DETR_BIOT
+- Hvis clay, bør denne ha større verdi: POR_DISS_MICRO
+- Claymineraler:
+  - CLAST_CL, CL_DETR_MTRX, CMT_KAO, CMT_ILT, CMT_CHLOR
+
+4. Source Rocks<br>
+   Bergen Lab, Mineralanalyse, SharePoint<br>
+   https://statoilsrm.sharepoint.com/sites/ts-20022/Mineralanalyser%20lab%20Bergen/Shared%20Documents/Forms/AllItems.aspx<br>
+   Dean Stark - hver meter<br>
+   QEQMSCAN - hver 10 meter (OB) eller hver 3 meter (reservoar)<br>
+   https://github.com/equinor/sonic_reg_models_RokDoc2Geolog<br>
+
+1. TGR for XRF
+
+P0. SR
+------
+- LFP_DTS_SR3: Trond Ln(DTS) = a0 * sqrt(DT) + a1 * Ln(RT) + a2 * Ln(NPHI) + a3
+- mangler TVDML?
+- SRML
+        John Ivar Haugland
+        3 calibrations (cores, cuttings, Passey synthetics)
+        3 ML algorithms
+- SR examples
+        Hekkingen
+        Kobbe / Kolmule
+- Tools kan ha en betydning
+- Deposisjon:   NØ fra Norge
+                Ellers Shetlandsplatformen
+- Injektitt målt i Balder, Huldra 30/2-1
+- Slip effekt i Utsira sand, VS = f(VP)
+        NO 16/3-7
+        NO 16/3-8 A
+        NO 16/4-10
+        NO 16/3-6
+        NO 16/5-4
+        NO 16/2-5
+- Tetthet-nøytron separasjon NDS = (RHOB - 1.95)/0.05 - (0.45 - NPHI)/0.03
+- Anomalitet PR i SS / SH Balder
+        NO 35/11-18
+        NO 
+- Anomality PR in SS/SH Balder
+        35/11-18; 1750 - 1790 m MD
+        35/12-3 S
+        35/11-23
+        24/9-9 S; density as well?
+        24/9-11 S; density as well?
+- LeVec's model?
+
+P1. Skal retningsdata slettes?
+------------------------------
+
+P2. Konsistent UWBI, Govern Area, KB
+------------------------------------

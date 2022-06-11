@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+# When referencing Geolog variables in a Python script, names must always be lower case.
+
+## References
+#
+# Berg et al.
+# "Drilling, Completion, and Openhole Formation Evaluation of High-Angle Wells in 
+# High-Density Cesium Formate Brine: The Kvitebjørn Experience, 2004 - 2006"
+# SPE/IADC 105733
+#
+# Pedersen et al.
+# "Understanding the Effects of Cesium/Potassium Formate Fluid on Well Log Response - 
+# A Case Study of the Kristion and Kvitebjorn Fields, Offshore Norway"
+# SPE 103067
+
+import geolog
+import numpy as np
+
+while geolog.gettable():
+
+    rhob_corr_cs = lfp_rhob * (1.0 - 0.1714 * (lfp_pef - pe_lith) * 0.01)
+    sxo_cs = (lfp_rhomanc - lfp_rhog)/(rho_mf - lfp_rhog + c * (lfp_rhomanc - rhob_corr_cs)/(lfp_pef - pe_lith))
+    phid_cs = (lfp_rhomanc - rhob_corr_cs)/(lfp_rhomanc - (sxo_cs * rho_mf + (1.0 - sxo_cs) * lfp_rhog))
+    geolog.puttable()
+
+
+
+

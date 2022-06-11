@@ -1,0 +1,144 @@
+### 05. Appendix C/Linear regression
+
+#### 05.1 Books read
+
+- Frost, «Regression Analysis»
+
+#### 05.2 Links
+
+- https://statisticsbyjim.com/regression_book
+- https://voteview.com
+- https://www.statsmodels.org/stable/glm.html
+- https://github.com/madrury/py-glm
+- https://pypi.org/project/glimpy/
+- https://pypi.org/project/pyglmnet/
+- https://pysal.org/packages/
+- https://docs.pymc.io/notebooks/GLM-linear.html
+
+#### 05.3 Summary
+
+First some general pieces of advice:
+- Model order = the number of bends + 1
+- Normalize variables
+- Box-Cox transformation on the dependent variable. 
+- Center the Independent Variables to Reduce Structural Multicollinearity
+- Remove some of the highly correlated independent variables. 
+- Linearly combine the independent variables, such as adding them together. 
+- For highly correlated variables, principal components analysis or partial least squares regression. 
+- Studentized (standardized) residuals take the raw residual value and divide it by the standard deviation of the residuals. Typically, a standardized residual of +/- 3, or more, is a common benchmark for identifying large residuals that you should investigate.
+
+Residual value = Observed value – Fitted value
+
+Sum of Squared Errors (SSE) represents the variability that your model does not explain.
+
+Regression Sum of Squares (RSS) =  sum of the squared distances between the fitted values and the mean of the dependent variable (y-bar). 
+Some texts use RSS to refer to residual sums of squares (which we’re calling SSE) rather than regression sums of squares. 
+RSS represents the variability that your model explains. 
+
+Total Sum of Squares (TSS) = sum of the squared distances between the observed values and the mean of the dependent variable. 
+TSS represents the variability inherent in your dependent variable.
+
+R-squared = RSS / TSS is the fraction of the variability of the dependent variable around its mean that your model explains.
+
+Predicted R-squared: 
+- For all data points in the data set do the following:
+Remove the data point from the dataset, calculates the regression equation and evaluate how well the model predicts the missing observation. 
+
+Predicted R-squared is a summary statistic of how well the model predicted all of the observations when each one was removed from the dataset.
+
+P-value:
+- The p-value for each independent variable tests the null hypothesis that the variable has no relationship with the dependent variable.
+
+#### 05.5 Results
+
+TSS = RSS + SSE
+
+1 Research Before Starting
+
+Review the literature to develop a theoretical understanding of the relevant independent variables, their relationships with the dependent variable, 
+and the expected coefficient signs and effect magnitudes before you begin collecting.
+
+2 Dual data/model concern 
+Are data trustable? Is the model appropriate for the data? 
+
+3 If OLS Iteration
+OLS draws the line that minimizes the sum of squared errors (SSE)
+
+3.1 Choose iteration strategy
+
+Stepwise regression either adds the most significant variable or removes the least significant variable. 
+Best subsets regression fits all possible models based on the independent variables that you specify. 
+Adjusted R-squared or Mallows Cp is the criteria for picking the best fitting models for this process.
+
+3.2 Standardization of variables?
+
+To standardize a variable, you take each observed value for a variable, subtract the variable’s mean, and then divide by the variable’s standard deviation.
+Standardized coefficients signify the mean change of the dependent variable given a one standard deviation increase in an independent variable.
+Using standardized values and standardized coefficients removes the meaningless units and allows you to compare scores to the entire distribution of scores.
+
+3.3 Cross-validation?
+
+If the entire dataset is large, split your data into a training data to train your model on, and a test data — to test your model/predictions on.
+
+3.4 Determine the start model (often simplest model)
+3.5 Analyse the data assuming the model
+
+3.5.1 Do statistical tests
+- P-values and coefficients are the key regression output
+- Confidence, and Prediction Intervals
+- Residual Plots
+- Interpret the regression coefficients and P-values?
+3.5.2 Handling of outliers?
+- assess if it appropriately reflects your target population, subject-area, research question, and research methodology.
+- if removed, document the excluded data points and explain your reasoning. Further, fit the model with and without these observations and discuss the differences.
+
+3.6 Check the Seven Classical OLS Assumptions
+
+OLS1: The regression model is linear in the coefficients and the error term<br>
+OLS2: The error term has a population mean of zero<br>
+OLS3: All independent variables are uncorrelated with the error term<br>
+OLS4: Observations of the error term are uncorrelated with each other<br>
+OLS5: The error term has a constant variance (no heteroscedasticity)<br>
+OLS6: No independent variable is a perfect linear function of other explanatory variables<br>
+OLS7: The error term is normally distributed (optional)<br>
+When you satisfy the OLS assumptions, the Gauss-Markov theorem states that your estimates will be unbiased and have minimum variance.
+
+Test1: calculate the mean<br>
+Test2: for each independent variable, graph the residuals vs. independent variable<br>
+Test3: graphing the residuals in the order that the data were collected<br>
+Test4: plot residuals versus fitted values plot. Heteroscedasticity appers as a cone shape where the spread of the residuals increases in one direction.<br>
+Test5: q-q plot<br>
+linear model: residuals of mean of zero, constant variance, not correlated with themselves or other variables. 
+The residual plots should not display any patterns.
+
+Transform independent variables if plot of residuals vs. variable gives curved pattern.<br>
+
+Transform dependent variable if
+- values extend over several orders of magnitude
+- it follows a very nonnormal distribution.
+
+3.7 If model satisfy the stop conditions, stop iteration
+
+We’re looking for a model that has the following features:
+- a high adjusted R-squared
+- a small standard error of the regression
+- a Mallows’ Cp close to the number of variables plus constant 
+- a high predicted R-squared
+- Assess the signs and values of the regression coefficients to be sure that they make sense.
+
+3.8 If not stopped, modify the model
+
+- change independent variables and/or transform them
+- Box-Cox transformation and Johnson transformation of dependent
+
+3.9 Goto 3.5
+
+4 Use alternative algorithms
+
+- Ridge regression
+- Lasso regression
+- Partial least squares (PLS)
+- nonlinear models
+- Weighted least squares regression
+- generalized linear model
+

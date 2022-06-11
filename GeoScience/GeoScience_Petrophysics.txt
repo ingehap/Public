@@ -1,0 +1,9 @@
+NaCLeq = Chlorides * 1.648
+5.61 * [GOR, Sm3/Sm3] = [GOR, scf/bbl]
+
+VSH
+  - VSH_DN = (NPHI_SST - PHIT * HI_CSK) / NPHISH (V/V)
+  - HI_CSK = 0.506 (30/4-A-13)
+
+2. N/F formula
+3. True vs. apparent dip; tan(app dip) = tan(app dip) * cos(bedding angle)

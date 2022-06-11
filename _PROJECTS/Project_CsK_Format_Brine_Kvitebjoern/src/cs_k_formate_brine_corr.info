@@ -1,0 +1,18 @@
+# spec : 
+LANGUAGE = PYTHON
+MODE:  ARG:         VAR:         TYPE:       REPEAT: DEFAULT:     VALIDATION: LOCATION: UNIT:   VISIBLE: TAB_LABEL: COMMENT=
+#====  ====         ====         =====       ======= ========     =========== ========= =====   ======== ========== ========                                               
+INPUT  FILE_IN      file_in      FILE        ""      ""           ""          ""        ""      TRUE     ""         "Input table (pipe)."
+INPUT  FILE_OUT     file_out     FILE        ""      ""           ""          ""        ""      TRUE     ""         "Output table (pipe)."
+INPUT  SET_IN       set_in       ALPHA*4     ""      LFP          ""          PARAMETER ALPHA*4 TRUE     ""         "Default input set"
+INPUT  SET_OUT      set_out      ALPHA*4     ""      LFP          ""          PARAMETER ALPHA*4 TRUE     ""         "Default output set"
+INPUT  PE_LITH      pe_lith      NAME_DOUBLE ""      5.0          ""          LOG       B/E     TRUE     ""         "Baseline PEF; typically 4 - 6 B/E for Kvitebjørn"
+INPUT  C            c            NAME_DOUBLE ""      121.0        ""          LOG       B/E     TRUE     ""         "Regression slope; Kvitebjørn value is 121 B/E"
+INPUT  RHO_MF       rho_mf       NAME_DOUBLE ""      2.05         ""          LOG       G/C3    TRUE     ""         "Density; NO 30/4-A-19 T2 has 2.10 g/cm3 - 2.12 g/cm3"
+INPUT  LFP_PEF      lfp_pef      NAME_DOUBLE ""      LFP_PEF      ""          LOG       B/E     TRUE     ""         "Photoelectric effect"
+INPUT  LFP_RHOB     lfp_rhob     NAME_DOUBLE ""      LFP_RHOB     ""          LOG       G/CM3   TRUE     ""         "Bulk density"
+INPUT  LFP_RHOMANC  lfp_rhomanc  NAME_DOUBLE ""      LFP_RHOMANC  ""          LOG       G/CM3   TRUE     ""         "Matrix density, not corrected"
+INPUT  LFP_RHOG     lfp_rhog     NAME_DOUBLE ""      LFP_RHOG     ""          LOG       G/CM3   TRUE     ""         "Gas density"
+OUTPUT RHOB_CORR_CS rhob_corr_cs NAME_DOUBLE ""      RHOB_CORR_CS ""          LOG       G/CM3   TRUE     ""         "Corrected Bulk Density; Cs mud"
+OUTPUT SXO_CS       sxo_cs       NAME_DOUBLE ""      SXO_CS       ""          LOG       V/V     TRUE     ""         "Corrected Flushed Zone Water Saturation; Cs mud"
+OUTPUT PHID_CS      phid_cs      NAME_DOUBLE ""      PHID_CS      ""          LOG       V/V     TRUE     ""         "Recomputed density porosity; Cs mud"

@@ -1,0 +1,100 @@
+Aristoteles' 3 types of rhetorics
+	1. forensics: past/blame
+	2. epideitice: present/value
+	3. deliberative: future/available options
+	"We are what we repeatably do"
+
+Data
+	sport data - espn.com
+
+Cornell notes
+	left: questions/ideas
+	right: notes
+	buttom: summary
+
+Decision making
+	reversible/fast or irreversible/slow?
+	escalate immediately true misalignments
+	disagree and commit
+	good course correction => lower info needed
+
+Dual process
+	1. plan/execute/effective/model
+	2. explore/test/iterative/data
+
+Heuristics
+	analysis/diastole vs. synthesis/systole
+	consistency/falsification/counterexamples/outliers
+	dialectics = pursue truth by Q&A
+	epagoge = make rules from examples
+	HDM (science): build, measure, learn loop
+	Hermeneutics (humaniora): overall consistency
+	possible actions to improve the odds?
+	weak links?
+	underestimated ignorance/uncertainty?
+	new options?
+	strategy (where, when) & tactics (how)
+        what do the best imformed think?
+	actions needs to be weighted with non-actions
+	worst case risk of new things is known? downside of old things?
+	effect of heterogeneity by calculation of elasticities
+	boundary/extreme cases; controlling factors
+	hypothetic cases
+	reductio ad absurdum
+	are implications conceptuals or empirical?
+	where are my blind spots/ignorance?
+	attitude: love truth, stay humble, test everything, keep what is good
+	randomized controlled trial (RCT)
+	bayesian decision analysis, game theory, decision trees
+	avoid bias: hidsight, status quo, action
+Hypotheses
+	simple and precise
+	extreme cases
+	examples/patterns
+	made for testing/falsification
+	if falsified, refine hypotheses
+
+Ivy Lee Method
+	at the end of day plan and prioritize tasks
+
+Models
+	assumptions
+	mapping to easier (analog?) models
+	add complexity to solved cases
+	Bayesian stochastic models with updating
+	get examples/observations/measurements
+	do simulations: best/worst/average case
+
+Operational process
+	keep fixed problems fixed
+	eliminate fixed problems at root
+	inspect processes
+
+Proactive
+	improve service
+	add benefits/features
+	lower price, increase value, refund policy
+	fast delivery, large selection
+	listen to the customer and work backwards      
+
+Social structures
+	power = pattern of systematic dominance in a social structure
+	inner circle = common interest; elitism
+	stability: what is a person is in a different position?
+	understand policy
+		long division
+		elasticity A vs B (rel change A divided by rel change B)
+		find uniform segments
+		find complementaries (x & y comp iff dy/dx > 0)
+	compare policies, for each policy
+		what do you want to achieve?
+		what resources are required?
+		what is output/unit input (time, cost)?
+	group behavior
+		identify homogeneous segments
+		assign weight factor for each segment
+Task breakdown
+	purpose of task
+	stakeholders
+	find 1 - 5 subtasks for feedbacks
+

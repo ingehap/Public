@@ -1,0 +1,18 @@
+Standard LFP workflow
+1. Kjør BADDATA en ekstra gang før petroeval
+2. Sjekk kvalitet RHOB/DT/DTS/RT
+3. oil/gas flagg konsistente med PR og trykk?
+4. lfp_cpi_petrophysics_extended.layout
+5. LFP_SWT and LFP_SOT_SUBST similar?
+6. check-shots
+7. RHOB / DT /DTS / INC vs. TVDML
+8. Is the fluid substitution similar in edited zones as in the not edited zones?
+9. Homogenization of Formations are necessary?
+
+Admin LFP
+1. SMDA: UWBI, govern area, elevation
+
+Ideas LFP:
+- Gjennomgå resultat med kunde helt til slutt
+- Oppstartsmøte
+
