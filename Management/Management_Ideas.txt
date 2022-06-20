@@ -91,6 +91,27 @@ https://www.gutenberg.org/
 https://doi.org/10.6084/m9.figshare.13040516
 https://github.com/merely-useful/py-rse
 
+Inversion software
+pyGIMLi - www.pygimli.org
+ResIPy - gitlab/hkex/resipy
+SimPEG - github.com/simpeg/simpeg
+
+df.columns.tolist()
+df2 = df[['A','B']].copy()
+
+import time
+time.sleep(2)
+
+pip freeze >> requirements.txt
+pip install -r requirements.txt
+
+import calendar
+calendar.prmonth(2022, 5)
+
+import psutil as ps
+m = ps.virtual_memory()
+m.used / m.total
+
 Windows and the conda command isn’t available at the Bash shell, you’ll need to open the Anaconda Prompt program (via the Windows start menu) and run the command conda init bash
 
 If we want to set some variables automatically every time we run a shell, we can put commands to do this in a file called .bashrc in our home directory. For example, here are two lines in /Users/amira/.bashrc: 
