@@ -1,16 +1,5 @@
-Aristoteles' 3 types of rhetorics
-	1. forensics: past/blame
-	2. epideitice: present/value
-	3. deliberative: future/available options
-	"We are what we repeatably do"
-
 Data
 	sport data - espn.com
-
-Cornell notes
-	left: questions/ideas
-	right: notes
-	buttom: summary
 
 Decision making
 	reversible/fast or irreversible/slow?
@@ -41,18 +30,15 @@ Heuristics
 	boundary/extreme cases; controlling factors
 	hypothetic cases
 	reductio ad absurdum
-	are implications conceptuals or empirical?
-	where are my blind spots/ignorance?
+	where are my blind spots/ignorance/biases?
 	attitude: love truth, stay humble, test everything, keep what is good
 	randomized controlled trial (RCT)
 	bayesian decision analysis, game theory, decision trees
-	avoid bias: hidsight, status quo, action
+
 Hypotheses
-	simple and precise
+	simple, precise, testable
 	extreme cases
 	examples/patterns
-	made for testing/falsification
-	if falsified, refine hypotheses
 
 Ivy Lee Method
 	at the end of day plan and prioritize tasks
@@ -93,6 +79,7 @@ Social structures
 	group behavior
 		identify homogeneous segments
 		assign weight factor for each segment
+
 Task breakdown
 	purpose of task
 	stakeholders
