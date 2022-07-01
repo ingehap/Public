@@ -1,0 +1,23 @@
+# spec : 
+LANGUAGE = PYTHON
+DESCRIPTION_DETAIL = "Summary\:\nExample of how to use Loglan Python and Keras to build a simple fully-connected deep neural-network model and train it.\n\nAuthor\:\nConstantine Vavourakis (Emerson, 2018)"
+MODE:  ARG:                    VAR:                    TYPE:         REPEAT: DEFAULT:            VALIDATION: LOCATION: UNIT:    VISIBLE: TAB_LABEL: COMMENT=
+#====  ====                    ====                    =====         ======= ========            =========== ========= =====    ======== ========== ========                                                 
+INPUT  FILE_IN                 file_in                 FILE          ""      ""                  ""          ""        ""       TRUE     ""         "Input table (pipe)."
+INPUT  FILE_OUT                file_out                FILE          ""      ""                  ""          ""        ""       TRUE     ""         "Output table (pipe)."
+IN_OUT EPOCHS                  epochs                  NAME_INT      ""      100                 2\:1000000  CONSTANT  ""       TRUE     ""         "Number of training iterations"
+IN_OUT MODELFILENAME_KERAS_DNN modelfilename_keras_dnn NAME_ALPHA*64 ""      keras_dt_prediction ?           CONSTANT  ALPHA*64 TRUE     ""         "Filename for the trained model (saved in specs folder)"
+IN_OUT MODEL_LOG_A_NORM_LO     model_log_a_norm_lo     NAME_REAL     ""      0                   ?           CONSTANT  ""       TRUE     ""         "Model log A lower plot limit for linear normalization"
+IN_OUT MODEL_LOG_A_NORM_HI     model_log_a_norm_hi     NAME_REAL     ""      300                 ?           CONSTANT  ""       TRUE     ""         "Model log A upper plot limit for linear normalization"
+IN_OUT MODEL_LOG_B_NORM_LO     model_log_b_norm_lo     NAME_REAL     ""      2                   ?           CONSTANT  ""       TRUE     ""         "Model log B lower plot limit for linear normalization"
+IN_OUT MODEL_LOG_B_NORM_HI     model_log_b_norm_hi     NAME_REAL     ""      3                   ?           CONSTANT  ""       TRUE     ""         "Model log B upper plot limit for linear normalization"
+IN_OUT MODEL_LOG_C_NORM_LO     model_log_c_norm_lo     NAME_REAL     ""      0                   ?           CONSTANT  ""       TRUE     ""         "Model log C lower plot limit for linear normalization"
+IN_OUT MODEL_LOG_C_NORM_HI     model_log_c_norm_hi     NAME_REAL     ""      0.6                 ?           CONSTANT  ""       TRUE     ""         "Model log C upper plot limit for linear normalization"
+IN_OUT MODEL_LOG_D_NORM_LO     model_log_d_norm_lo     NAME_REAL     ""      0                   ?           CONSTANT  ""       TRUE     ""         "Model log D lower plot limit for linear normalization"
+IN_OUT MODEL_LOG_D_NORM_HI     model_log_d_norm_hi     NAME_REAL     ""      1                   ?           CONSTANT  ""       TRUE     ""         "Model log D upper plot limit for linear normalization"
+INPUT  MODEL_LOG_A             model_log_a             NAME_REAL     ""      GR                  ?           LOG       ""       TRUE     ""         "Model log A"
+INPUT  MODEL_LOG_B             model_log_b             NAME_REAL     ""      RHOB                ?           LOG       ""       TRUE     ""         "Model log B"
+INPUT  MODEL_LOG_C             model_log_c             NAME_REAL     ""      NPHI                ?           LOG       ""       TRUE     ""         "Model log C"
+INPUT  MODEL_LOG_D             model_log_d             NAME_REAL     ""      CT                  ?           LOG       ""       TRUE     ""         "Model log D"
+INPUT  TRAINING_LOG_A          training_log_a          NAME_REAL     ""      DT                  ?           LOG       ""       TRUE     ""         "Example log A"
+OUTPUT OUTPUT                  output                  NAME_REAL     ""      ""                  ""          LOG       ""       FALSE    ""         "Leave blank (fixes an input/output issue)"

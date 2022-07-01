@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+# python loglan
+
+# Imports
+import geolog
+import numpy as np
+from sklearn import preprocessing
+from sklearn import svm
+
+# Load data from Geolog
+while geolog.gettable():
+
+    # Normalize data between 0 and 1
+    gr   = preprocessing.scale(gr)
+    rhob = preprocessing.scale(rhob)
+    nphi = preprocessing.scale(nphi)
+
+    # Make copy of logs for the model training
+    gr_train = gr
+    rhob_train = rhob
+    nphi_train = nphi
+    lith_code_train = lith_code
+   
+    # Make list of data rows to delete that have missing inputs for x training data, we do not want to train examples with missing inputs
+    delete_index = np.empty([0])
+    for index in range(0, gr.shape[0]):
+        if np.isnan(gr[index]) or np.isnan(rhob[index]) or np.isnan(nphi[index]) or lith_code[index] == -2147483647:
+            delete_index = np.append(delete_index, index)
+    
+    gr_train = np.delete(gr, delete_index)
+    rhob_train = np.delete(rhob, delete_index)
+    nphi_train = np.delete(nphi, delete_index)
+    lith_code_train = np.delete(lith_code, delete_index)
+    
+    # Reshape data to work with model
+    x_train = np.array([gr_train, rhob_train, nphi_train])
+    x_train = np.swapaxes(x_train,0,1)
+    y_train = lith_code_train
+    x_pred = np.array([gr, rhob, nphi])
+    x_pred = np.swapaxes(x_pred,0,1)
+
+    # Print statements to verify array dimensions
+    print("X training x-axis size (training samples): ", x_train.shape[0])
+    print("X training y-axis size (model logs): ", x_train.shape[1])
+    print("Y training x-axis size (training samples): ", y_train.shape[0])
+    print("X prediction x-axis size (total samples): ", x_pred.shape[0])
+    print("X prediction y-axis size (model logs): ", x_pred.shape[1])
+
+    # Define SVM model and parameters
+    model = svm.SVC(gamma='auto', C=1.0)
+    
+    # Train the model
+    model.fit(x_train, y_train)
+    
+    # Predict a lith_code using trained model
+    lith_code_pred = model.predict(x_pred)
+    
+    # Store data back into Geolog
+    geolog.puttable()
+
+
+
+
+
+
+
+

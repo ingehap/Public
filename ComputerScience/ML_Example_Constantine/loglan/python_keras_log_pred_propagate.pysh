@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+# python loglan
+
+# Author: Constantine Vavourakis (2018)
+# Summary: Apply a simple (deep) neural network to predict DT from GR, RHOB and NPHI logs.
+
+# Imports
+import geolog
+import numpy as np
+import h5py
+#from keras.models import Sequential
+#from keras.layers import Dense
+from keras.models import model_from_json
+
+# Function that normalizes/rescales a log from a min/max value to between 0 and 1.
+# Parameters: input log, the lower value to be rescaled to 0, the upper value to be rescaled to 1.
+def norm_log(log, log_min, log_max):
+    log = np.subtract(log, log_min)
+    log = np.divide(log, log_max)
+    return log
+
+# Function that predicts a log using a saved Keras model
+# Parameters: X input log data array, base filename of model to use
+def predict(X, filename):
+    # Rebuild model architecture from a JSON file
+    with open(filename + '_architecture.json', 'r') as f:
+        model = model_from_json(f.read())
+
+    # Load the weights into the model
+    model.load_weights(filename + '_weights.h5')
+    
+    # Predict the log
+    results = model.predict(X)
+    
+    return results
+
+# Load data from Geolog, this gets looped for each well and interval
+while geolog.gettable():
+
+    # Define the input filename
+    filename = './specs/' + modelfilename_keras_dnn
+
+    # Reshape and normalize the logs using the same normalization parameters as before
+    X = np.stack((norm_log(model_log_a, model_log_a_norm_lo, model_log_a_norm_hi), 
+                  norm_log(model_log_b, model_log_b_norm_lo, model_log_b_norm_hi), 
+                  norm_log(model_log_c, model_log_c_norm_lo, model_log_c_norm_hi), 
+                  norm_log(model_log_d, model_log_d_norm_lo, model_log_d_norm_hi)), axis=-1)
+
+    # Predict output log
+    predicted_log = predict(X, filename)
+    
+    # Write results back to Geolog
+    geolog.puttable()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

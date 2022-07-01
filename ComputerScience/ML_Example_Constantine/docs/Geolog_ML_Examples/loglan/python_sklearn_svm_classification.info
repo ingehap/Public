@@ -1,0 +1,12 @@
+# spec : 
+LANGUAGE = PYTHON
+DESCRIPTION_DETAIL = "Summary\:\nExample of how to use Loglan Python and Scikit-Learn to build a simple SVM model, train it, and predict lithology codes.\n\nAuthor\:\nConstantine Vavourakis (Emerson, 2018)"
+MODE:  ARG:           VAR:           TYPE:     REPEAT: DEFAULT:       VALIDATION: LOCATION: UNIT: VISIBLE: TAB_LABEL: COMMENT=
+#====  ====           ====           =====     ======= ========       =========== ========= ===== ======== ========== ========                    
+INPUT  FILE_IN        file_in        FILE      ""      ""             ""          ""        ""    TRUE     ""         "Input table (pipe)."
+INPUT  FILE_OUT       file_out       FILE      ""      ""             ""          ""        ""    TRUE     ""         "Output table (pipe)."
+INPUT  GR             gr             NAME_REAL ""      GR             ""          LOG       GAPI  TRUE     ""         "Gamma Ray"
+INPUT  RHOB           rhob           NAME_REAL ""      RHOB           ""          LOG       G/C3  TRUE     ""         "Bulk Density"
+INPUT  NPHI           nphi           NAME_REAL ""      NPHI           ""          LOG       V/V   TRUE     ""         "Neutron porosity"
+INPUT  LITH_CODE      lith_code      NAME_INT  ""      LITH_CODE      ""          LOG       ""    TRUE     ""         "Lithology Code Number"
+OUTPUT LITH_CODE_PRED lith_code_pred NAME_INT  ""      LITH_CODE_PRED ""          LOG       ""    TRUE     ""         "Lithology Code Prediction"

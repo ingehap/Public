@@ -1,0 +1,139 @@
+#!/usr/bin/env python3
+# python loglan
+
+# Imports
+import geolog
+import numpy as np
+import h5py
+import matplotlib.pyplot as plt
+from keras.models import Sequential
+from keras.layers import Dense
+
+# Function that normalizes/rescales a log from a min/max value to between 0 and 1.
+# Parameters: input log, the lower value to be rescaled to 0, the upper value to be rescaled to 1.
+def norm_log(log, log_min, log_max):
+    log = np.subtract(log, log_min)
+    log = np.divide(log, log_max)
+    return log
+
+# Function that builds and trains the model 
+# Parameters: X training data, Y training data, number of input logs, model base filename to save, number of epochs to train on
+def model(X, Y, num_input_logs, filename, num_epochs=1500):
+
+    # Set random seed for repeatability
+    np.random.seed(0)
+    
+    # Design the model, a simple fully-connected 2-hidden-layer model using ReLU activation functions
+    model = Sequential()  
+    model.add(Dense(20, activation='relu', input_dim=num_input_logs))
+    model.add(Dense(10, activation='relu'))
+    model.add(Dense(1, activation='linear'))
+    
+    # Train the model, using MSE loss function, Adam optimizer and Accuracy metric.
+    model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
+    history = model.fit(X, Y, epochs=num_epochs)
+    model.evaluate(X, Y)
+    
+    # Save the model weights as a .h5 file and the architecture as a .json file
+    model.save_weights(filename + '_weights.h5')
+    with open(filename + '_architecture.json', 'w') as f:
+        f.write(model.to_json())
+        
+    # plot the loss over epochs using Matplotlib library
+    plt.plot(history.history['loss'])
+    plt.ylabel('Loss')
+    plt.xlabel('Epochs')
+    plt.title('Model Loss')
+    plt.show()
+
+
+# Initializing variables (with defaults) to store data of all wells/intervals
+epochs_global = 10
+filename = "./specs/python_keras_dnn_log_prediction"
+
+model_log_a_all = np.empty([0])
+model_log_b_all = np.empty([0])
+model_log_c_all = np.empty([0])
+model_log_d_all = np.empty([0])
+training_log_a_all = np.empty([0])
+model_log_a_norm_lo_gl = 0
+model_log_a_norm_hi_gl = 0
+model_log_b_norm_lo_gl = 0
+model_log_b_norm_hi_gl = 0
+model_log_c_norm_lo_gl = 0
+model_log_c_norm_hi_gl = 0
+model_log_d_norm_lo_gl = 0
+model_log_d_norm_hi_gl = 0
+
+# Load data from Geolog, this gets looped for each well and interval
+while geolog.gettable():
+
+    # Append data to variables
+    model_log_a_all = np.append(model_log_a_all, model_log_a)
+    model_log_b_all = np.append(model_log_b_all, model_log_b)
+    model_log_c_all = np.append(model_log_c_all, model_log_c)
+    model_log_d_all = np.append(model_log_d_all, model_log_d)
+    training_log_a_all = np.append(training_log_a_all, training_log_a)
+    
+    # Retrieve normalization factors
+    model_log_a_norm_lo_gl = model_log_a_norm_lo
+    model_log_a_norm_hi_gl = model_log_a_norm_hi
+    model_log_b_norm_lo_gl = model_log_b_norm_lo
+    model_log_b_norm_hi_gl = model_log_b_norm_hi
+    model_log_c_norm_lo_gl = model_log_c_norm_lo
+    model_log_c_norm_hi_gl = model_log_c_norm_hi
+    model_log_d_norm_lo_gl = model_log_d_norm_lo
+    model_log_d_norm_hi_gl = model_log_d_norm_hi
+
+    # Store number of training epochs
+    epochs_global = epochs
+
+    # Define model base filename, include specs sub-folder in name
+    filename = './specs/' + modelfilename_keras_dnn
+
+    # Fix for input/output issue, not actually doing anything of use
+    output = 0
+    geolog.puttable()
+    
+# Find indexes that have training examples with missing values
+delete_index = np.empty([0])
+for index in range(0, model_log_a_all.shape[0]):
+    if (np.isnan(model_log_a_all[index]) or 
+        np.isnan(model_log_b_all[index]) or 
+        np.isnan(model_log_c_all[index]) or 
+        np.isnan(model_log_d_all[index]) or 
+        np.isnan(training_log_a_all[index])):
+        delete_index = np.append(delete_index, index)
+
+# Remove the above indexes from the training data, we do not want to train on missing values
+model_log_a_all = np.delete(model_log_a_all, delete_index)
+model_log_b_all = np.delete(model_log_b_all, delete_index)
+model_log_c_all = np.delete(model_log_c_all, delete_index)
+model_log_d_all = np.delete(model_log_d_all, delete_index)
+training_log_a_all = np.delete(training_log_a_all, delete_index)
+
+# Reshape and normalize the logs for use with the Keras model
+X_train = np.stack((norm_log(model_log_a_all, model_log_a_norm_lo_gl, model_log_a_norm_hi_gl), 
+                    norm_log(model_log_b_all, model_log_b_norm_lo_gl, model_log_b_norm_hi_gl), 
+                    norm_log(model_log_c_all, model_log_c_norm_lo_gl, model_log_c_norm_hi_gl), 
+                    norm_log(model_log_d_all, model_log_d_norm_lo_gl, model_log_d_norm_hi_gl)), axis=-1)
+Y_train = training_log_a_all
+Y_train = np.expand_dims(Y_train, axis=1)
+
+# Verify array dimensions
+print("X train shape (examples, input logs): ", X_train.shape)
+print("Y train shape (examples): ", Y_train.shape)
+
+# Train the model by calling the model function we defined above
+model(X_train, Y_train, X_train.shape[1], filename, epochs_global)
+
+
+
+
+
+
+
+
+
+
+
